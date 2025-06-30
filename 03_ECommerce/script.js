@@ -32,9 +32,36 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Load cart from localStorage if available
+    function loadCart() {
+        const stored = localStorage.getItem('cart');
+        if (stored) {
+            try {
+                const parsed = JSON.parse(stored);
+                if (Array.isArray(parsed)) {
+                    cart.length = 0;
+                    parsed.forEach(item => cart.push(item));
+                }
+            } catch {}
+        }
+    }
+
+    // Save cart to localStorage
+    function saveCart() {
+        localStorage.setItem('cart', JSON.stringify(cart));
+    }
+
+    // Update addToCart, rendercart, and remove logic to save cart
     function addToCart(product) {
-        cart.push(product);
-        rendercart(cart);
+        // Check if product already in cart
+        const existing = cart.find(item => item.id === product.id);
+        if (existing) {
+            existing.qty = (existing.qty || 1) + 1;
+        } else {
+            cart.push({ ...product, qty: 1 });
+        }
+        saveCart();
+        rendercart();
     }
 
     function rendercart(){
@@ -45,11 +72,16 @@ document.addEventListener('DOMContentLoaded', () => {
             emptyCartMessage.classList.add('hidden');
             cartTotalMessage.classList.remove('hidden');
             cart.forEach((item, index) => {
-                total += item.price;
+                total += (item.price * (item.qty || 1));
                 const cartItem = document.createElement('div');
                 cartItem.classList.add('cart-item');
                 cartItem.innerHTML = `
                     <span>${item.name} - $${item.price.toFixed(2)}</span>
+                    <span class="cart-product-qty">
+                        <button class="qty-btn decrease" data-index="${index}">-</button>
+                        <span class="qty-value">${item.qty || 1}</span>
+                        <button class="qty-btn increase" data-index="${index}">+</button>
+                    </span>
                     <button class="remove-btn" data-index="${index}">Remove</button>
                 `;
                 cartItems.appendChild(cartItem);
@@ -62,9 +94,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     cartItems.addEventListener('click', (e) => {
+        const index = parseInt(e.target.getAttribute('data-index'));
         if (e.target.classList.contains('remove-btn')) {
-            const index = parseInt(e.target.getAttribute('data-index'));
             cart.splice(index, 1);
+            saveCart();
+            rendercart();
+        } else if (e.target.classList.contains('qty-btn')) {
+            if (e.target.classList.contains('increase')) {
+                cart[index].qty = (cart[index].qty || 1) + 1;
+            } else if (e.target.classList.contains('decrease')) {
+                cart[index].qty = (cart[index].qty || 1) - 1;
+                if (cart[index].qty <= 0) cart.splice(index, 1);
+            }
+            saveCart();
             rendercart();
         }
     });
@@ -73,9 +115,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (cart.length > 0) {
             alert(`Thank you for your purchase! Total: $${totalPrice.textContent}`);
             cart.length = 0; // Clear the cart
+            saveCart();
             rendercart();
         } else {
             alert('Your cart is empty!');
         }
     });
+
+    // On page load, restore cart
+    loadCart();
+    rendercart();
 });
