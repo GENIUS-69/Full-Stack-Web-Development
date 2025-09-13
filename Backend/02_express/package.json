@@ -1,19 +1,18 @@
 {
-  "name": "tea-manager",
+  "name": "02_express",
   "version": "1.0.0",
-  "description": "a simple manager for different tea",
-  "main": "index.js",
+  "description": "My First Express server",
+  "keywords": [
+    "express"
+  ],
+  "license": "ISC",
+  "author": "GENIUS",
   "type": "module",
+  "main": "index.js",
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js"
   },
-  "keywords": [
-    "express",
-    "tea"
-  ],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "express": "^5.1.0"
   }
